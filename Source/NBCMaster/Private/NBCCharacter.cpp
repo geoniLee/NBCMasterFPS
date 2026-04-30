@@ -216,5 +216,7 @@ void ANBCCharacter::EquipWeapon(AWeaponBase* Weapon)
 	
 	// 무기 장착
 	EquippedWeapon = Weapon;
+	OverlappedWeapon = nullptr;
+	
 	EquippedWeapon->Equip(this);
 }
