@@ -23,6 +23,7 @@ ANBCCharacter::ANBCCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 	
+	// 플레이어 이동 방향과 Character 방향 동기화
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
@@ -182,7 +183,7 @@ void ANBCCharacter::Look(const FInputActionValue& Value)
 	// 좌우 회전
 	AddControllerYawInput(LookInput.X);
 	// 상하 회전
-	AddControllerPitchInput(LookInput.Y);
+	AddControllerPitchInput(-LookInput.Y);
 }
 
 void ANBCCharacter::Interact()
@@ -211,7 +212,7 @@ void ANBCCharacter::EquipWeapon(AWeaponBase* Weapon)
 	if (!Weapon || EquippedWeapon == Weapon) return;
 		
 	// 장착 중인 무기가 있을 경우
-	if (EquippedWeapon) EquippedWeapon->UnEquip();
+	if (EquippedWeapon) EquippedWeapon->Destroy();
 	
 	// 무기 장착
 	EquippedWeapon = Weapon;
