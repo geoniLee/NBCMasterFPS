@@ -11,7 +11,6 @@ class AWeaponBase;
 class UInputAction;
 class UInputMappingContext;
 class UCameraComponent;
-class USpringArmComponent;
 
 UCLASS()
 class NBCMASTER_API ANBCCharacter : public ACharacter
@@ -35,9 +34,6 @@ public:
 
 protected:
 	// 컴포넌트
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USpringArmComponent* SpringArm;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* Camera;
 	

@@ -1,12 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "NBCCharacter.h"
+#include "Player/NBCCharacter.h"
 
-#include "WeaponBase.h"
+#include "Player/WeaponBase.h"
 
 #include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -18,26 +17,20 @@ ANBCCharacter::ANBCCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	// 카메라 회전 동기화 하지 않음
+	// Yaw 값만 캐릭터 회전에 반영
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 	
-	// 플레이어 이동 방향과 Character 방향 동기화
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	// 입력 방향으로 캐릭터가 자동 회전하지 않도록 설정
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-	
-	// 스프링 암 설정
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(GetRootComponent());
-	SpringArm->TargetArmLength = 300.0f;
-	SpringArm->bUsePawnControlRotation = true;
 	
 	// 카메라 설정
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
-	Camera->bUsePawnControlRotation = false;
+	Camera->SetupAttachment(GetRootComponent());
+	Camera->SetRelativeLocation(FVector(0.0f, 0.0f, 64.0f));
+	Camera->bUsePawnControlRotation = true;
 	
 	// 무기 상태
 	OverlappedWeapon = nullptr;

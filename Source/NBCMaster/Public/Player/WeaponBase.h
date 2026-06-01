@@ -60,9 +60,6 @@ protected:
 	float RecoilYawMax;				// 반동 - Yaw 최댓값
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Recoil")
-	float RecoilKnockbackStrength;	// 뒤로 밀리는 힘
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float RecoilRecoverySpeed;		// 발사 반동 회복 속도
 	
 	// 런타임 변경 값

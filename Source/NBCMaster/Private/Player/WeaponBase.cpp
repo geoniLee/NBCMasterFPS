@@ -1,12 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "WeaponBase.h"
+#include "Player/WeaponBase.h"
 
-#include "NBCCharacter.h"
+#include "Player/NBCCharacter.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -47,7 +46,6 @@ AWeaponBase::AWeaponBase() :OwnerPlayer(nullptr)
 	RecoilPitch = 2;
 	RecoilYawMin = -0.5f;
 	RecoilYawMax = 0.5f;
-	RecoilKnockbackStrength =200;
 	RecoilRecoverySpeed = 8;
 	
 	CurrentMagazineAmmo = 0;
@@ -77,6 +75,7 @@ void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	// 누적된 반동을 회복
 	CurrentRecoilRotation = FMath::RInterpTo(
 		CurrentRecoilRotation,
 		FRotator::ZeroRotator,
@@ -109,25 +108,33 @@ void AWeaponBase::Fire()
 {
 	if (!CanFire()) return;
 	
-	const FVector StartLocation = OwnerPlayer->GetActorLocation() + FVector(0,0,60);
-	const FRotator FireRatation = OwnerPlayer->GetActorRotation() + CurrentRecoilRotation;
-	const FVector BaseDirection = FireRatation.Vector();
+	// 카메라 기준 발사 위치
+	FVector ViewLocation;
+	FRotator ViewRotation;
+	if (!GetFireViewPoint(ViewLocation, ViewRotation)) return;
+	
+	// 과열 - 반동 반영
+	ViewRotation += CurrentRecoilRotation;
+	const FVector BaseDirection = ViewRotation.Vector();
 	
 	const float SpreadRadians = FMath::DegreesToRadians(SpreadAngle);
 	
+	// 여러 발이 발사되는 경우 대응
 	for (int32 i = 0; i< PelletCount; ++i){
 		FVector ShotDirection = BaseDirection;
-
+		
+		// 반동 및 총기 자체 오차가 있을 경우 반영
 		if (SpreadAngle > 0){
 			ShotDirection = FMath::VRandCone(BaseDirection, SpreadRadians);
 		}
 
-		FireTrace(StartLocation, ShotDirection);
+		FireTrace(ViewLocation, ShotDirection);
 	}
 	
 	CurrentMagazineAmmo--;
 	UE_LOG(LogTemp, Warning, TEXT("Ammo: %d / %d"), CurrentMagazineAmmo, CurrentTotalAmmo);
 	
+	// 반동 적용 및 쿨다운 시작
 	ApplyReCoil();
 	StartFireCooldown();
 }
@@ -137,6 +144,7 @@ void AWeaponBase::Reload()
 	if (CurrentTotalAmmo <= 0)return;
 	if (CurrentMagazineAmmo >= MagazineSize) return;
 	
+	// 예비 탄창에서 가져올 수 있는 만큼만 가져옴
 	const int32 NeedAmmo = MagazineSize - CurrentMagazineAmmo;
 	const int32 reloadAmmo = FMath::Min(NeedAmmo, CurrentTotalAmmo);
 	
@@ -161,6 +169,7 @@ bool AWeaponBase::GetFireViewPoint(FVector& OutLocation, FRotator& OutRotation) 
 	AController* OwnerController = OwnerPlayer->GetController();
 	if (!OwnerController) return false;
 	
+	// 카메라 기준으로 위치와 회전값을 가져옴
 	OwnerController->GetPlayerViewPoint(OutLocation, OutRotation);
 	return true;
 }
@@ -178,6 +187,7 @@ void AWeaponBase::FireTrace(const FVector& Start, const FVector& Direction)
 		Params.AddIgnoredActor(OwnerPlayer);
 	}
 	
+	// 라인 트레이스 실행
 	const bool bHit = GetWorld()->LineTraceSingleByChannel(
 		Hit, Start, End, ECC_Visibility, Params);
 	
@@ -186,7 +196,7 @@ void AWeaponBase::FireTrace(const FVector& Start, const FVector& Direction)
 		GetWorld(), 
 		Start, 
 		End, 
-		bHit ? FColor::Red : FColor::Green, 
+		bHit ? FColor::Green : FColor::Red, 
 		false,
 		1,
 		0,
@@ -218,17 +228,11 @@ void AWeaponBase::ApplyReCoil()
 	
 	const float RandomYaw = FMath::RandRange(RecoilYawMin, RecoilYawMax);
 	
+	// 발사 방향에 반동값 적용
 	CurrentRecoilRotation.Pitch += RecoilPitch;
 	CurrentRecoilRotation.Yaw += RandomYaw;
 	
-	UCharacterMovementComponent* MovementComponent = OwnerPlayer->GetCharacterMovement();
-	if (!MovementComponent) return;
-	
-	const FVector BackwardVector = -OwnerPlayer->GetActorForwardVector();
-	const FVector recoilImpulse = BackwardVector * RecoilKnockbackStrength;
-	
-	MovementComponent->AddImpulse(recoilImpulse, true);
-	
+	// 플레이어 입력에 반동을 적용해 시야를 흔듦
 	OwnerPlayer->AddControllerPitchInput(-RecoilPitch);
 	OwnerPlayer->AddControllerYawInput(RandomYaw);
 }
@@ -242,6 +246,7 @@ void AWeaponBase::StartFireCooldown()
 		return;
 	}
 	
+	// 발사 cooldown 적용
 	GetWorldTimerManager().SetTimer(
 		FireRateTimerHandle,
 		this,
