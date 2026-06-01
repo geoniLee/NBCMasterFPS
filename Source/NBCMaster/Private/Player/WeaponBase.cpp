@@ -96,8 +96,10 @@ void AWeaponBase::Equip(ACharacter* newOwnerPlayer)
 	AttachToComponent(
 		newOwnerPlayer->GetMesh(),
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		TEXT("WeaponSocket")
+		TEXT("weapon_r")
 	);
+	
+	SetActorRelativeScale3D(FVector(0.5f));
 	
 	if (Collision){
 		Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
