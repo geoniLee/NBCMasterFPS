@@ -37,6 +37,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* Camera;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
+	float DefaultFOV;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
+	float AimFOV;
+	
 protected:
 	// 입력
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
@@ -60,6 +66,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* ReloadAction;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* AimAction;
+	
 protected:
 	// 무기 상태
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
@@ -81,6 +90,10 @@ protected:
 	void Interact();
 	void StartFire();
 	void Reload();
+	
+	// 조준
+	void StartAim();
+	void StopAim();
 	
 protected:
 	// 무기 기능 함수

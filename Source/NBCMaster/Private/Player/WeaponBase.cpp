@@ -40,6 +40,7 @@ AWeaponBase::AWeaponBase() :OwnerPlayer(nullptr)
 	MaxAmmo = 90;
 	
 	SpreadAngle = 0;
+	AimSpreadMultiplier = 0.5f;
 	FireRate = 0.15f;
 	
 	RecoilPitch = 2;
@@ -50,6 +51,7 @@ AWeaponBase::AWeaponBase() :OwnerPlayer(nullptr)
 	CurrentMagazineAmmo = 0;
 	CurrentTotalAmmo = 0;
 	bCanFire = true;
+	bIsAiming = false;
 	CurrentRecoilRotation = FRotator::ZeroRotator;
 	
 }
@@ -137,6 +139,11 @@ void AWeaponBase::Reload()
 	UE_LOG(LogTemp, Warning, TEXT("Reload: Magazine = %d / Total = %d"), CurrentMagazineAmmo, CurrentTotalAmmo);
 }
 
+void AWeaponBase::SetAiming(bool bNewAiming)
+{
+	bIsAiming = bNewAiming;
+}
+
 bool AWeaponBase::CanFire() const
 {
 	if (!OwnerPlayer || !bCanFire) return false;
@@ -160,10 +167,11 @@ bool AWeaponBase::GetFireViewPoint(FVector& OutLocation, FRotator& OutRotation) 
 void AWeaponBase::ApplyFire(const FVector& ViewLocation, const FVector& BaseDirection)
 {
 	FVector ShotDirection = BaseDirection;
+	const float CurrentSpreadAngle = bIsAiming ? SpreadAngle * AimSpreadMultiplier : SpreadAngle;
 	
 	// 탄 퍼짐, 명중 오차
-	if (SpreadAngle > 0){
-		ShotDirection = FMath::VRandCone(BaseDirection, FMath::DegreesToRadians(SpreadAngle));
+	if (CurrentSpreadAngle > 0){
+		ShotDirection = FMath::VRandCone(BaseDirection, FMath::DegreesToRadians(CurrentSpreadAngle));
 	}
 	
 	FireTrace(ViewLocation, ShotDirection);

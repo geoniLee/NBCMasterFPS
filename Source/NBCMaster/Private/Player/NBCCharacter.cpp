@@ -12,7 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
-ANBCCharacter::ANBCCharacter()
+ANBCCharacter::ANBCCharacter() : DefaultFOV(90.0f), AimFOV(65.0f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -139,6 +139,23 @@ void ANBCCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			&ANBCCharacter::Reload
 		);
 	}
+	
+	//IA_Aim
+	if (AimAction){
+		EnhancedInputComponent->BindAction(
+			AimAction,
+			ETriggerEvent::Started,
+			this,
+			&ANBCCharacter::StartAim
+		);
+		
+		EnhancedInputComponent->BindAction(
+			AimAction,
+			ETriggerEvent::Completed,
+			this,
+			&ANBCCharacter::StopAim
+		);
+	}
 }
 
 void ANBCCharacter::SetOverlappedWeapon(AWeaponBase* Weapon)
@@ -198,6 +215,27 @@ void ANBCCharacter::Reload()
 	if (!EquippedWeapon) return;
 	
 	EquippedWeapon->Reload();
+}
+
+void ANBCCharacter::StartAim()
+{
+	if (!EquippedWeapon) return;
+	//EquippedWeapon->SetAiming(true);
+	
+	if (Camera){
+		Camera->SetFieldOfView(AimFOV);
+	}
+}
+
+void ANBCCharacter::StopAim()
+{
+	if (EquippedWeapon){
+		//EquippedWeapon->SetAiming(false);
+	}
+	
+	if (Camera){
+		Camera->SetFieldOfView(DefaultFOV);
+	}
 }
 
 void ANBCCharacter::EquipWeapon(AWeaponBase* Weapon)

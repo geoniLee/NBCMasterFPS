@@ -44,6 +44,9 @@ protected:
 	float SpreadAngle;				// 확산 각도
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
+	float AimSpreadMultiplier;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
 	float FireRate;					// 발사 간격
 	
 	// 무기 반동
@@ -68,6 +71,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|RunTime")
 	bool bCanFire;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|RunTime")
+	bool bIsAiming;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|RunTime")
 	FRotator CurrentRecoilRotation;
@@ -98,6 +104,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void Reload();
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SetAiming(bool bNewAiming);
 	
 protected:
 	// 발사 관리

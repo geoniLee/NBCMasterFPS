@@ -10,14 +10,15 @@ ASGWeapon::ASGWeapon()
 
 void ASGWeapon::ApplyFire(const FVector& ViewLocation, const FVector& BaseDirection)
 {
-	const float SpreadRadians = FMath::DegreesToRadians(SpreadAngle);
+	const float CurrentSpreadAngle = bIsAiming ? SpreadAngle * AimSpreadMultiplier : SpreadAngle;
+	const float SpreadRadians = FMath::DegreesToRadians(CurrentSpreadAngle);
 	
 	//여러 발 발사
 	for (int32 i = 0; i < PelletCount; ++i){
 		FVector ShotDirection = BaseDirection;
 		
 		// 탄 퍼짐, 명중 오차
-		if (SpreadAngle > 0){
+		if (CurrentSpreadAngle > 0){
 			ShotDirection = FMath::VRandCone(BaseDirection, SpreadRadians);
 		}
 		
