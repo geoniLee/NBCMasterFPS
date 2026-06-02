@@ -39,7 +39,6 @@ AWeaponBase::AWeaponBase() :OwnerPlayer(nullptr)
 	MagazineSize = 30;
 	MaxAmmo = 90;
 	
-	PelletCount =1;
 	SpreadAngle = 0;
 	FireRate = 0.15f;
 	
@@ -115,30 +114,12 @@ void AWeaponBase::Fire()
 	FRotator ViewRotation;
 	if (!GetFireViewPoint(ViewLocation, ViewRotation)) return;
 	
-	// 과열 - 반동 반영
+	// 누적된 반동을 실제 발사 방향에 반영
 	ViewRotation += CurrentRecoilRotation;
 	const FVector BaseDirection = ViewRotation.Vector();
 	
-	const float SpreadRadians = FMath::DegreesToRadians(SpreadAngle);
-	
-	// 여러 발이 발사되는 경우 대응
-	for (int32 i = 0; i< PelletCount; ++i){
-		FVector ShotDirection = BaseDirection;
-		
-		// 반동 및 총기 자체 오차가 있을 경우 반영
-		if (SpreadAngle > 0){
-			ShotDirection = FMath::VRandCone(BaseDirection, SpreadRadians);
-		}
-
-		FireTrace(ViewLocation, ShotDirection);
-	}
-	
-	CurrentMagazineAmmo--;
-	UE_LOG(LogTemp, Warning, TEXT("Ammo: %d / %d"), CurrentMagazineAmmo, CurrentTotalAmmo);
-	
-	// 반동 적용 및 쿨다운 시작
-	ApplyReCoil();
-	StartFireCooldown();
+	ApplyFire(ViewLocation, BaseDirection);
+	FinishFire();
 }
 
 void AWeaponBase::Reload()
@@ -174,6 +155,27 @@ bool AWeaponBase::GetFireViewPoint(FVector& OutLocation, FRotator& OutRotation) 
 	// 카메라 기준으로 위치와 회전값을 가져옴
 	OwnerController->GetPlayerViewPoint(OutLocation, OutRotation);
 	return true;
+}
+
+void AWeaponBase::ApplyFire(const FVector& ViewLocation, const FVector& BaseDirection)
+{
+	FVector ShotDirection = BaseDirection;
+	
+	// 탄 퍼짐, 명중 오차
+	if (SpreadAngle > 0){
+		ShotDirection = FMath::VRandCone(BaseDirection, FMath::DegreesToRadians(SpreadAngle));
+	}
+	
+	FireTrace(ViewLocation, ShotDirection);
+}
+
+void AWeaponBase::FinishFire()
+{
+	CurrentMagazineAmmo--;
+	UE_LOG(LogTemp, Warning, TEXT("Ammo: %d / %d"), CurrentMagazineAmmo, CurrentTotalAmmo);
+	
+	ApplyReCoil();
+	StartFireCooldown();
 }
 
 void AWeaponBase::FireTrace(const FVector& Start, const FVector& Direction)

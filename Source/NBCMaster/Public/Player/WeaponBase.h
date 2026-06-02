@@ -41,9 +41,6 @@ protected:
 	
 	// 무기 사용
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
-	int32 PelletCount;				// 한번에 발사하는 탄 수
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
 	float SpreadAngle;				// 확산 각도
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
@@ -97,7 +94,7 @@ public:
 	virtual void Equip(ACharacter* newOwnerPlayer);
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	virtual void Fire();
+	void Fire();
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void Reload();
@@ -106,6 +103,9 @@ protected:
 	// 발사 관리
 	bool CanFire() const;
 	bool GetFireViewPoint(FVector& OutLocation, FRotator& OutRotation) const;
+	
+	virtual void ApplyFire(const FVector& ViewLocation, const FVector& BaseDirection);
+	virtual void FinishFire();
 	
 	void FireTrace(const FVector& Start, const FVector& Direction);
 	void ApplyReCoil();
