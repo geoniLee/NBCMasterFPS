@@ -241,12 +241,11 @@ void ANBCCharacter::Reload()
 
 void ANBCCharacter::StartAim()
 {
-	bIsAiming = true;
-	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed * AimWalkSpeedMultiplier;
-	
 	if (!EquippedWeapon) return;
 	EquippedWeapon->SetAiming(true);
-	
+
+	bIsAiming = true;
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed * AimWalkSpeedMultiplier;
 	TargetFOV = AimFOV;
 }
 
