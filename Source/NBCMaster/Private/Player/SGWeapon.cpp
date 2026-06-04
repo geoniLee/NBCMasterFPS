@@ -10,7 +10,7 @@ ASGWeapon::ASGWeapon()
 
 void ASGWeapon::ApplyFire(const FVector& ViewLocation, const FVector& BaseDirection)
 {
-	const float CurrentSpreadAngle = bIsAiming ? SpreadAngle * AimSpreadMultiplier : SpreadAngle;
+	const float CurrentSpreadAngle = SpreadAngle + CurrentSustainedFireSpread;
 	const float SpreadRadians = FMath::DegreesToRadians(CurrentSpreadAngle);
 	
 	//여러 발 발사

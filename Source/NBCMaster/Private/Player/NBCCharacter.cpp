@@ -12,7 +12,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
-ANBCCharacter::ANBCCharacter() : DefaultFOV(90.0f), AimFOV(65.0f)
+ANBCCharacter::ANBCCharacter() : 
+	DefaultFOV(90.0f), 
+	AimFOV(65.0f), 
+	FOVInterpSpeed(12.0f),
+	AimLookMultiplier(0.5f), 
+	AimWalkSpeedMultiplier(0.5f),
+	bIsAiming(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -36,6 +42,12 @@ ANBCCharacter::ANBCCharacter() : DefaultFOV(90.0f), AimFOV(65.0f)
 	OverlappedWeapon = nullptr;
 	EquippedWeapon = nullptr;
 	
+	DefaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	
+	TargetFOV = DefaultFOV;
+	if (Camera){
+		Camera->SetFieldOfView(DefaultFOV);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -63,6 +75,15 @@ void ANBCCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!Camera) return;
+	const float NewFOV = FMath::FInterpTo(
+		Camera->FieldOfView,
+		TargetFOV,
+		DeltaTime,
+		FOVInterpSpeed
+	);
+	
+	Camera->SetFieldOfView(NewFOV);
 }
 
 // Called to bind functionality to input
@@ -188,7 +209,8 @@ void ANBCCharacter::Move(const FInputActionValue& Value)
 
 void ANBCCharacter::Look(const FInputActionValue& Value)
 {
-	const FVector2D LookInput = Value.Get<FVector2D>();
+	FVector2D LookInput = Value.Get<FVector2D>();
+	if (bIsAiming) LookInput *= AimLookMultiplier;
 	
 	// 좌우 회전
 	AddControllerYawInput(LookInput.X);
@@ -219,23 +241,25 @@ void ANBCCharacter::Reload()
 
 void ANBCCharacter::StartAim()
 {
-	if (!EquippedWeapon) return;
-	//EquippedWeapon->SetAiming(true);
+	bIsAiming = true;
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed * AimWalkSpeedMultiplier;
 	
-	if (Camera){
-		Camera->SetFieldOfView(AimFOV);
-	}
+	if (!EquippedWeapon) return;
+	EquippedWeapon->SetAiming(true);
+	
+	TargetFOV = AimFOV;
 }
 
 void ANBCCharacter::StopAim()
 {
+	bIsAiming = false;
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+	
 	if (EquippedWeapon){
-		//EquippedWeapon->SetAiming(false);
+		EquippedWeapon->SetAiming(false);
 	}
 	
-	if (Camera){
-		Camera->SetFieldOfView(DefaultFOV);
-	}
+	TargetFOV = DefaultFOV;
 }
 
 void ANBCCharacter::EquipWeapon(AWeaponBase* Weapon)

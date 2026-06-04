@@ -40,19 +40,22 @@ AWeaponBase::AWeaponBase() :OwnerPlayer(nullptr)
 	MaxAmmo = 90;
 	
 	SpreadAngle = 0;
-	AimSpreadMultiplier = 0.5f;
 	FireRate = 0.15f;
 	
 	RecoilPitch = 2;
+	RecoilMultiplier = 0.5f;
 	RecoilYawMin = -0.5f;
 	RecoilYawMax = 0.5f;
-	RecoilRecoverySpeed = 8;
+	
+	SustainedFireSpreadPerShot = 0.25f;
+	MaxSustainedFireSpread = 5.0f;
+	SustainedFireRecoverySpeed = 3.0f;
+	CurrentSustainedFireSpread = 0.0f;
 	
 	CurrentMagazineAmmo = 0;
 	CurrentTotalAmmo = 0;
 	bCanFire = true;
 	bIsAiming = false;
-	CurrentRecoilRotation = FRotator::ZeroRotator;
 	
 }
 
@@ -76,12 +79,14 @@ void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	// 누적된 반동을 회복
-	CurrentRecoilRotation = FMath::RInterpTo(
-		CurrentRecoilRotation,
-		FRotator::ZeroRotator,
+	// 총기 발사 가능할 때에만 연사로 인한 탄퍼짐 감소
+	if (!bCanFire) return;
+	
+	CurrentSustainedFireSpread = FMath::FInterpTo(
+		CurrentSustainedFireSpread,
+		0.0f,
 		DeltaTime,
-		RecoilRecoverySpeed
+		SustainedFireRecoverySpeed
 	);
 }
 
@@ -116,8 +121,7 @@ void AWeaponBase::Fire()
 	FRotator ViewRotation;
 	if (!GetFireViewPoint(ViewLocation, ViewRotation)) return;
 	
-	// 누적된 반동을 실제 발사 방향에 반영
-	ViewRotation += CurrentRecoilRotation;
+	// 카메라 방향을 기준으로 발사 방향을 계산
 	const FVector BaseDirection = ViewRotation.Vector();
 	
 	ApplyFire(ViewLocation, BaseDirection);
@@ -167,7 +171,7 @@ bool AWeaponBase::GetFireViewPoint(FVector& OutLocation, FRotator& OutRotation) 
 void AWeaponBase::ApplyFire(const FVector& ViewLocation, const FVector& BaseDirection)
 {
 	FVector ShotDirection = BaseDirection;
-	const float CurrentSpreadAngle = bIsAiming ? SpreadAngle * AimSpreadMultiplier : SpreadAngle;
+	const float CurrentSpreadAngle = SpreadAngle + CurrentSustainedFireSpread;
 	
 	// 탄 퍼짐, 명중 오차
 	if (CurrentSpreadAngle > 0){
@@ -181,6 +185,10 @@ void AWeaponBase::FinishFire()
 {
 	CurrentMagazineAmmo--;
 	UE_LOG(LogTemp, Warning, TEXT("Ammo: %d / %d"), CurrentMagazineAmmo, CurrentTotalAmmo);
+	
+	// 연사 시 탄 퍼짐 증가
+	CurrentSustainedFireSpread = FMath::Min(
+		CurrentSustainedFireSpread + SustainedFireSpreadPerShot, MaxSustainedFireSpread);
 	
 	ApplyReCoil();
 	StartFireCooldown();
@@ -238,14 +246,14 @@ void AWeaponBase::ApplyReCoil()
 {
 	if (!OwnerPlayer) return;
 	
-	const float RandomYaw = FMath::RandRange(RecoilYawMin, RecoilYawMax);
-	
-	// 발사 방향에 반동값 적용
-	CurrentRecoilRotation.Pitch += RecoilPitch;
-	CurrentRecoilRotation.Yaw += RandomYaw;
+	// 조준 여부를 확인하여 반동 값 계산
+	const float AppliedRecoilPitch = bIsAiming ? RecoilPitch * RecoilMultiplier : RecoilPitch;
+	const float RandomYaw = bIsAiming 
+		? FMath::RandRange(RecoilYawMin, RecoilYawMax) * RecoilMultiplier 
+		: FMath::RandRange(RecoilYawMin, RecoilYawMax);
 	
 	// 플레이어 입력에 반동을 적용해 시야를 흔듦
-	OwnerPlayer->AddControllerPitchInput(-RecoilPitch);
+	OwnerPlayer->AddControllerPitchInput(-AppliedRecoilPitch);
 	OwnerPlayer->AddControllerYawInput(RandomYaw);
 }
 

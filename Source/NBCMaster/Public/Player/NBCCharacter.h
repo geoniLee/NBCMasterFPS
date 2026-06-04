@@ -37,11 +37,29 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* Camera;
 	
+	// Aim(FOV)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
 	float DefaultFOV;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
 	float AimFOV;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
+	float FOVInterpSpeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
+	float TargetFOV;
+	
+	// Aim(시야 감도)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
+	float AimLookMultiplier;
+	
+	//Aim(이동속도)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aim")
+	float AimWalkSpeedMultiplier;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aim")
+	float DefaultWalkSpeed;
 	
 protected:
 	// 입력
@@ -76,6 +94,10 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* EquippedWeapon;
+	
+	// 조준 여부
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aim")
+	bool bIsAiming;
 	
 public:
 	// 무기 충돌

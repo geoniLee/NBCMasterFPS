@@ -44,9 +44,6 @@ protected:
 	float SpreadAngle;				// 확산 각도
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
-	float AimSpreadMultiplier;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Fire")
 	float FireRate;					// 발사 간격
 	
 	// 무기 반동
@@ -54,13 +51,23 @@ protected:
 	float RecoilPitch;				// 반동 - Pitch
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Recoil")
+	float RecoilMultiplier;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float RecoilYawMin;				// 반동 -Yaw 최솟갑
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float RecoilYawMax;				// 반동 - Yaw 최댓값
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Recoil")
-	float RecoilRecoverySpeed;		// 발사 반동 회복 속도
+	// 연속 발사로 인한 집탄 악화
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|SustainedFire")
+	float SustainedFireSpreadPerShot;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|SustainedFire")
+	float MaxSustainedFireSpread;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|SustainedFire")
+	float SustainedFireRecoverySpeed;
 	
 	// 런타임 변경 값
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|RunTime")
@@ -76,7 +83,7 @@ protected:
 	bool bIsAiming;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|RunTime")
-	FRotator CurrentRecoilRotation;
+	float CurrentSustainedFireSpread;
 	
 	UPROPERTY()
 	ACharacter* OwnerPlayer;
