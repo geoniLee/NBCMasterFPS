@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "NBCTorchlight.generated.h"
 
+
+
 UCLASS()
 class NBCMASTER_API ANBCTorchlight : public AActor
 {
@@ -26,4 +28,7 @@ public:
 public:
 	UPROPERTY(EditAnywhere)
 	TArray<TWeakObjectPtr<AActor>> Items;
+	
+	//UPROPERTY(BlueprintAssignable)
+	//FDeath OnDeath;
 };
